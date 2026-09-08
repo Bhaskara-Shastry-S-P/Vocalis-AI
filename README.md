@@ -1,5 +1,4 @@
-```markdown
-# Vocalis AI 
+# Vocalis AI
 
 An open-source AI platform designed to analyze, extract, and generate writing styles using stylistic fingerprinting and verifiable author passports.
 
@@ -11,11 +10,11 @@ Vocalis AI provides an end-to-end pipeline to analyze literary or domain-specifi
 
 ## Core Features
 
-* **Style Extraction Engine**: Quantifies lexical, syntactic, and stylistic metrics across arbitrary text corpora.
-* **Dimensionality Reduction & Visualization**: Projects text embeddings and profile vectors using UMAP for cluster exploration.
-* **FastAPI Backend**: Exposes REST endpoints for author profile management, token verification, text generation, and health checks.
-* **Cryptographic Passport Builder**: Signs and verifies author style definitions using standard JWKS and asymmetric keypairs.
-* **Configurable LLM Integrations**: Orchestrates generation prompts conditioned on calculated stylistic profiles.
+- **Style Extraction Engine**: Quantifies lexical, syntactic, and stylistic metrics across arbitrary text corpora.
+- **Dimensionality Reduction & Visualization**: Projects text embeddings and profile vectors using UMAP for cluster exploration.
+- **FastAPI Backend**: Exposes REST endpoints for author profile management, token verification, text generation, and health checks.
+- **Cryptographic Passport Builder**: Signs and verifies author style definitions using standard JWKS and asymmetric key pairs.
+- **Configurable LLM Integrations**: Orchestrates generation prompts conditioned on calculated stylistic profiles.
 
 ---
 
@@ -30,7 +29,6 @@ Vocalis AI provides an end-to-end pipeline to analyze literary or domain-specifi
 │   └── tests/            # Integration and endpoint test suites
 ├── corpus/               # Seed reference texts (e.g., Austen, Dickens, Poe)
 └── Makefile              # Setup, linting, and execution workflows
-
 ```
 
 ---
@@ -39,29 +37,29 @@ Vocalis AI provides an end-to-end pipeline to analyze literary or domain-specifi
 
 ### Prerequisites
 
-* Python 3.10+
-* Poetry or `pip`
-* Node.js (if utilizing optional UI modules)
+- Python 3.10+
+- Poetry or `pip`
+- Node.js (if utilizing optional UI modules)
 
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
-git clone <(https://github.com/Bhaskara-Shastry-S-P/Vocalis-AI)>
-cd <Vocalis AI>
-
+git clone https://github.com/Bhaskara-Shastry-S-P/Vocalis-AI.git
+cd Vocalis-AI
 ```
-
 
 2. **Configure environment variables:**
+
 ```bash
 cp .env.example .env
-# Update the configuration in .env with your required API keys and settings
 
+# Update the configuration in .env with your required API keys and settings
 ```
 
-
 3. **Install dependencies:**
+
 ```bash
 # AI Pipeline
 cd ai_pipeline
@@ -70,10 +68,7 @@ pip install -e .
 # Backend API
 cd ../backend
 pip install -r requirements.txt
-
 ```
-
-
 
 ---
 
@@ -86,13 +81,12 @@ Run the FastAPI application locally:
 ```bash
 cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
 ```
 
-Access interactive API documentation at:
+Access the interactive API documentation at:
 
-* Swagger UI: `http://localhost:8000/docs`
-* ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ---
 
@@ -108,13 +102,4 @@ pytest
 # Run pipeline unit tests
 cd ../ai_pipeline
 pytest
-
-```
-
----
-
-
-
-```
-
 ```
