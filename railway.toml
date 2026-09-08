@@ -1,0 +1,52 @@
+# Railway service config for the AutorIA FastAPI backend (monorepo).
+#
+# IMPORTANT: leave Root Directory EMPTY (repo root), NOT `backend/`.
+# Passport verify imports `autoria_ai` from `ai_pipeline/`, which is a sibling
+# of `backend/` — with Root Directory = backend that package is not in the image
+# and uvicorn crashes with ModuleNotFoundError: No module named 'autoria_ai'.
+#
+# Secrets (WATSONX_API_KEY, SUPABASE_URL, SUPABASE_KEY, DATABASE_URL,
+# AUTORIA_CORS_ORIGINS, PASSPORT_*) are set under Service → Variables.
+#
+# buildCommand installs `requirements-deploy.txt`, NOT `backend/requirements.txt`:
+# one process imports both `backend/app` and `ai_pipeline/autoria_ai`, so the
+# image needs the union of both pyprojects. See that file's header (WO-02 / #83).
+# The builder's own install phase already runs `pip install -r requirements.txt`
+# (the root shim); buildCommand runs after it and layers the pipeline deps on top.
+#
+# The rest of buildCommand pre-fetches two ML models so a cold boot loads
+# them from local disk instead of downloading them at runtime:
+#
+# 1. spaCy `en_core_web_lg`. NOT a PyPI package (`pip install en_core_web_lg`
+#    404s), so it cannot be a line in requirements-deploy.txt; `python -m
+#    spacy download` resolves the model release matching the spaCy version
+#    pip just installed. Without it `autoria_ai.generator._ensure_models()`
+#    raises OSError [E050] and every POST /api/generate returns 500 — while
+#    /health still reports 200, because backend/app/main.py swallows the
+#    warmup failure.
+# 2. sentence-transformers `all-mpnet-base-v2` (~418 MB from HuggingFace).
+#    `autoria_ai/embedder.py` loads this lazily on first use rather than at
+#    import (#104), but the FastAPI lifespan still calls
+#    `autoria_ai.generator.warmup_models()` at startup so the first real
+#    request isn't the one paying for it — that warmup is what this step
+#    turns into a local-disk load instead of a network fetch. Written into
+#    `~/.cache/huggingface`, the same cache directory (and technique) already
+#    used to speed up this exact download in .github/workflows/ci.yml.
+[build]
+builder = "NIXPACKS"
+buildCommand = "pip install -r requirements-deploy.txt && python -m spacy download en_core_web_lg && python -c \"from sentence_transformers import SentenceTransformer; SentenceTransformer('all-mpnet-base-v2')\""
+
+[deploy]
+startCommand = "cd backend && PYTHONPATH=../ai_pipeline uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+# 300s, not the default 100s. Even with the model pre-fetched into the image
+# at build time (above), the FastAPI lifespan still loads it from disk into
+# memory before the app can answer the first /health probe, on top of spaCy
+# and Watsonx client setup — comfortably under 300s from local disk, but a
+# transient miss on the build-time cache (or a Railway image rebuild that
+# drops it) would fall back to the ~418 MB network download this timeout was
+# originally sized for. Kept wide rather than re-tuned tight, since a slow
+# healthcheck delays a deploy but a falsely-tight one kills it outright.
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
